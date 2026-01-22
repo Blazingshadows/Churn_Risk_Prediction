@@ -1,4 +1,4 @@
-# Probabilistic Churn Risk Modeling for Multi-Platform Entertainment Subscriptions
+# Probabilistic Churn Risk Modeling for Entertainment Subscription Services
 
 ## Table of Contents
 - [Overview](#overview)
@@ -10,76 +10,85 @@
 - [Evaluation Metrics](#evaluation-metrics)
 - [Explainability](#explainability)
 - [Tech Stack](#tech-stack)
-- [Project Structure](#project-structure)
 
 ## Overview
 
-Entertainment subscription services operate in a highly competitive and saturated market where users frequently maintain multiple subscriptions and switch platforms based on engagement, perceived value, pricing structures, and external contextual factors. Unlike traditional churn settings, subscription churn in entertainment platforms often manifests as gradual disengagement rather than abrupt cancellation.
+Entertainment subscription services face persistent customer churn driven not only by explicit cancellations but also by gradual disengagement, declining usage, and contextual factors such as pricing structures and external events. Unlike transactional churn settings, churn in streaming platforms is often preceded by behavioral decay over time, making early detection critical.
 
-This project focuses on building a **probabilistic churn prediction system** for multi-platform entertainment subscriptions. Instead of producing deterministic churn labels, the system:
-- Estimates churn risk probabilities
-- Maps them into actionable risk bands
-- Interprets churn behavior through a time-aware and region-aware analytical framework
+This project develops a **probabilistic churn risk modeling framework** using a single publicly available subscription dataset as a representative proxy for entertainment streaming services. The goal is not platform-specific prediction, but to:
+- Analyze churn dynamics
+- Quantify churn risk
+- Design an early-warning system that can inform retention strategies
 
-The project emphasizes **problem formulation**, **temporal feature design**, **explainability**, and **decision-oriented evaluation**, rather than model complexity alone.
+The emphasis of this project is on **problem formulation**, **temporal modeling**, **interpretability**, and **decision-oriented evaluation**, rather than on dataset breadth or model complexity.
 
 ## Problem Statement
 
+The objective of this project is to predict the likelihood that a subscriber will churn within a fixed future time horizon based on recent engagement and subscription behavior.
+
 ### Objectives
 
-The objective of this project is to predict whether a user is likely to churn from a given entertainment subscription platform within a fixed future time horizon, based on recent engagement and subscription behavior.
+Specifically, the project aims to:
 
-More specifically, the project aims to:
-
-- Model churn as a probabilistic risk, not a binary verdict
+- Estimate probabilistic churn risk instead of deterministic churn labels
+- Segment users into actionable churn risk bands
 - Identify behavioral and subscription-related drivers of churn
-- Segment users into risk bands (low, medium, high) to support targeted intervention
-- Analyze regional and temporal churn patterns in relation to external events using exploratory data analysis
-- Frame churn prediction as an early-warning system, approximating time-to-churn through repeated short-horizon predictions
+- Frame churn prediction as an early-warning system through time-aware modeling
+- Explore regional and temporal churn patterns using exploratory data analysis while avoiding causal claims
 
 ## Churn Definition
 
-Churn is defined per **user–platform pair**.
+Churn is defined at the **user level**.
 
 A user is considered **churned** if, within the prediction window:
+
 - The subscription is explicitly canceled, OR
 - The user exhibits prolonged inactivity exceeding a predefined threshold
 
-This definition allows the project to model both explicit cancellations and implicit disengagement, which are common in entertainment subscription services.
+This definition captures both explicit churn and implicit disengagement, which are common in entertainment subscription services.
 
 ## Data Formulation
 
-The dataset is structured in a **time-aware format**, where each row represents:
+The dataset is structured in a **time-aware format**, where each observation represents:
+
 ```
-User × Platform × Time Window
+User × Time Window
 ```
 
 ### Components
 
-- **Lookback Window**: Behavioral and subscription features aggregated over a recent fixed period (e.g., last 30 days)
+- **Lookback Window**: Aggregated behavioral and subscription features from a recent fixed period (e.g., last 30 days)
 - **Prediction Window**: Whether churn occurs in the subsequent fixed period (e.g., next 30 days)
 
-This formulation avoids data leakage and aligns the model with real-world deployment scenarios.
+### Key Properties
+
+This formulation ensures:
+
+- No data leakage
+- Realistic deployment alignment
+- Meaningful early churn detection
+
+The dataset is treated as representative of entertainment subscription behavior, consistent with standard academic practice.
 
 ## Exploratory Data Analysis
 
-EDA is used to investigate observable behavioral patterns and correlational trends, **not to establish causality**.
+EDA focuses on identifying observable behavioral patterns and correlational trends, **not causal relationships**.
 
 ### Key Analytical Themes
 
 - Engagement decay and inactivity patterns preceding churn
-- Price and plan-type sensitivity using observable proxies
-- Impact of ad-supported vs ad-free subscription plans
-- Cross-platform subscription behavior and substitution patterns
-- Regional churn dynamics and temporal correlations with major external events
+- Sensitivity to pricing and subscription plan types using observable proxies
+- Impact of ad-supported versus ad-free plans (where applicable)
+- Tenure-based churn dynamics
+- Regional churn pattern variation and temporal correlations with major external events
 
-All findings are presented with explicit acknowledgment of limitations and confounding factors.
+All EDA findings explicitly acknowledge data limitations and potential confounding factors.
 
 ## Modeling Approach
 
 ### Core Task
 
-Binary classification predicting the probability of churn within the prediction window.
+**Binary classification** predicting the probability of churn within the prediction window.
 
 ### Models Used
 
@@ -89,48 +98,54 @@ Binary classification predicting the probability of churn within the prediction 
 
 #### Gradient Boosted Trees (XGBoost / LightGBM)
 - Primary predictive model
-- Captures non-linear behavioral patterns and feature interactions
+- Captures non-linear engagement decay and feature interactions
 
-### Probabilistic Churn & Risk Bands
+*Note: Deep learning sequence models are intentionally excluded to maintain interpretability and scope control.*
 
-Rather than outputting a binary churn label, the model produces a **calibrated churn probability** for each user–platform instance.
+### Probabilistic Churn & Risk Band Segmentation
+
+Rather than outputting a binary churn decision, the model produces a **calibrated churn probability** for each user.
 
 These probabilities are mapped into risk bands:
 - **Low risk**
 - **Medium risk**
 - **High risk**
 
-Risk thresholds are selected based on precision–recall tradeoffs and business cost considerations, enabling actionable decision-making.
+Risk thresholds are selected using precision–recall tradeoffs and business cost considerations, enabling targeted retention actions.
 
 ### Time-to-Churn Framing
 
-Although the model predicts churn within a fixed horizon, repeated application over successive time windows allows churn risk to be tracked over time.
+Although the model predicts churn within a fixed horizon, repeated application across successive time windows allows churn risk to be tracked longitudinally.
 
 This enables:
 - Approximate time-to-churn interpretation
-- Visualization of churn risk trajectories for individual users
-- Early identification of escalating churn risk
+- Visualization of churn risk trajectories
+- Identification of accelerating disengagement patterns
 
 *Note: Formal survival analysis is acknowledged as a potential extension but is outside the scope of this project.*
 
 ## Evaluation Metrics
 
-Model performance is evaluated using metrics aligned with churn economics:
+Model performance is evaluated using **churn-appropriate metrics**:
 
-- **Recall** – to minimize missed churners
-- **Precision** – to limit unnecessary interventions
-- **ROC-AUC** – overall discriminative ability
-- **Precision–Recall AUC** – performance in imbalanced settings
-- **Confusion matrix analysis** – cost-aware interpretation
+- **Recall** – Minimizing missed churners
+- **Precision** – Avoiding unnecessary interventions
+- **ROC-AUC** – Overall discriminative ability
+- **Precision–Recall AUC** – Performance in imbalanced settings
+- **Confusion matrix analysis** – Cost-aware interpretation
 
-*Note: Accuracy alone is not used as a primary metric.*
+*Note: Accuracy is not used as a primary metric due to class imbalance and asymmetric error costs.*
 
 ## Explainability
 
-To ensure interpretability and trustworthiness, the project incorporates:
+To ensure transparency and trustworthiness:
 
-- **Global feature importance analysis** – What drives churn overall
-- **Local, instance-level explanations using SHAP values** – Why a specific user is considered high-risk
+- **Global feature importance analysis** is conducted
+- **Local, instance-level explanations** are generated using SHAP values
+
+This enables understanding both:
+- Overall churn drivers
+- Individual-level churn risk explanations
 
 ## Tech Stack
 
@@ -155,29 +170,7 @@ To ensure interpretability and trustworthiness, the project incorporates:
 - Git
 - GitHub
 
-## Project Structure
-
-```
-Churn Risk Prediction/
-├── README.md
-├── notebooks/
-│   ├── 01_eda.ipynb
-│   ├── 02_feature_engineering.ipynb
-│   └── 03_modeling.ipynb
-├── src/
-│   ├── data_loader.py
-│   ├── feature_engineering.py
-│   └── model.py
-├── data/
-│   ├── raw/
-│   └── processed/
-├── models/
-├── requirements.txt
-└── .gitignore
-```
-
 ---
 
-**Project Status**: Active Development
-
-For more information or questions, please refer to the project documentation or open an issue in the repository.
+**Status**: Active Development  
+**Last Updated**: January 2026
